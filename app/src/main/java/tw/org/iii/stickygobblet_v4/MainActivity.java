@@ -13,25 +13,45 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
     }
 
+    EditText name1;
     public void Start(View v) {
+
         Intent ii = new Intent();
         ii.setClass(this, GameActivity.class);
 
-        EditText name1 = (EditText) findViewById(R.id.name1);
-        EditText name2 = (EditText) findViewById(R.id.name2);
-
-        Log.d("chiyu",name1.getText().toString());
+        name1 = (EditText) findViewById(R.id.name1);
 
         Bundle bundle = new Bundle();
         bundle.putString("name1", name1.getText().toString());
-        bundle.putString("name2", name2.getText().toString());
+        bundle.putString("name2", "Orange Computer");
+        bundle.putInt("Mode", 3);
 
         ii.putExtras(bundle);
         startActivity(ii);
     }
 
+    public void Online1(View v) {
+
+        Intent ii = new Intent();
+        ii.setClass(this, GameActivity.class);
+
+        name1 = (EditText) findViewById(R.id.name1);
+
+        Bundle bundle = new Bundle();
+        bundle.putString("name1", name1.getText().toString());
+        bundle.putInt("Mode", 1);
+
+        ii.putExtras(bundle);
+        startActivity(ii);
+    }
+
+    public void Online2(View v) {
+        GameLink gl = new GameLink("TESTMAN");
+
+    }
 
 
 

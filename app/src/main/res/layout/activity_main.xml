@@ -17,14 +17,20 @@
         android:layout_height="wrap_content"
         android:text="Chiyu"/>
 
-    <EditText
-        android:id="@+id/name2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Computer"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="Start"
-        android:text="Start"/>
+        android:text="盧蛇單機玩"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="Online1"
+        android:text="線上 開房間"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="Online2"
+        android:text="線上 進房間"/>
+
 </LinearLayout>

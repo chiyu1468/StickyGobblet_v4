@@ -251,6 +251,9 @@ public class GameCore {
         ProcessErrorCode();
         return true;
     }
+    // 取得玩家ID 上傳遊戲用的
+    int getNowPlayerID(){return nowPlayerID;}
+
 
     // 強制設定回合
     void TrailRun() {
@@ -265,6 +268,7 @@ public class GameCore {
     void TrailRun3() {
         gameCheckerBoard.testpushpop();
     }
+
 
     // ============== 類別 ================
 
@@ -299,23 +303,31 @@ public class GameCore {
 
         // 棋步紀錄
         // history 類別 => 回合數,陣營,棋子ＩＤ,選擇棋格,目標棋格
-        LinkedList<history> gameRecode;
-        class history {
-            int turn;
-            long pieceInfo;
-            int target, destination;
-            history (piece nowPiece, int from,int to) {
-                turn = passedTurns;
-                pieceInfo = nowPiece.getPieceInfo();
-                //TODO target destination
-                target = from;
-                destination = to;
-            }
-        }
+        //LinkedList<history> gameRecode; // 改掉用 HashMap 了
+        LinkedList<HashMap> gameRecode;
+//        class history {
+//                int turn;
+//                int pieceInfo;
+//                int target, destination;
+//                history (piece nowPiece, int from,int to) {
+//                    turn = passedTurns;
+//                    pieceInfo = nowPiece.getPieceInfo();
+//                    //TODO target destination
+//                    target = from;
+//                    destination = to;
+//                }
+//        }
+
         // Recoder 用 add 的方式將每個回合的 history 物件 加到 LinkedList<>
         // 每次紀錄 回合加一
         private void Recoder(piece nowPiece, int from, int to) {
-            gameRecode.add(new history(nowPiece, from, to));
+            HashMap<String, Integer> history = new HashMap<>();
+            history.put("turn",passedTurns);
+            history.put("pieceInfo",nowPiece.getPieceInfo());
+            history.put("target",from);
+            history.put("destination",to);
+            //gameRecode.add(new history(nowPiece, from, to)); // 改掉用 HashMap 了
+            gameRecode.add(history);
             passedTurns ++;
         }
 
@@ -414,6 +426,7 @@ public class GameCore {
         byte getSize(int grid) {return boardGrids.get(grid).getFirst().getSize();}
         byte getFaction(int grid) {return boardGrids.get(grid).getFirst().getFaction();}
 
+        // 測試用
         void testpushpop(){
             depositPiece(1,new piece((byte) 1,(byte) 1, 3));
             depositPiece(1,new piece((byte) 2,(byte) 2, 5));
@@ -502,8 +515,8 @@ public class GameCore {
         byte getFaction() {return faction;}
         // 棋子資料 總和數字化 紀錄棋譜用
         // (ＩＤ 4bit) (大小 4bit) (陣營 4bit)
-        long getPieceInfo() {
-            return ((long)pieceID)*256 + (((long)size)*16) + (long)faction;
+        int getPieceInfo() {
+            return (pieceID)*256 + (((int)size)*16) + (int)faction;
         }
 
 
@@ -597,9 +610,9 @@ public class GameCore {
             gamePointGrids.clear();gamePointGrids.add(0);gamePointGrids.add(-1);
             // 本回合有變動的棋格
             //Log.v("chiyu","judge grid" + board.gameRecode.getFirst().target); // trial run
-            if(isGameWin(board.gameRecode.getLast().target)) return -1;
+            if(isGameWin((int)board.gameRecode.getLast().get("target"))) return -1;
             //Log.v("chiyu","judge grid" + board.gameRecode.getFirst().destination); // trial run
-            if(isGameWin(board.gameRecode.getLast().destination)) return -1;
+            if(isGameWin((int)board.gameRecode.getLast().get("destination"))) return -1;
             // 移除墊底的數字
             gamePointGrids.remove(0);gamePointGrids.remove(-1);
             return gamePointGrids.size();

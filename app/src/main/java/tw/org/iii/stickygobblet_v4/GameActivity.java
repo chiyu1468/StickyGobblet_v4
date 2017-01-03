@@ -41,7 +41,7 @@ public class GameActivity extends AppCompatActivity {
     static final int PieceRation = 2;
     // 陣營 單機版就是both
     String[] Faction = {null,"blue","orange","both"};
-    byte myFaction = 3;
+    byte myFaction;
     // 紀錄玩家名稱
     String[] playersName = {null,"BLUE","ORANGE"}; // 所有玩家的
     String player; // 你的名字！！！
@@ -59,12 +59,14 @@ public class GameActivity extends AppCompatActivity {
         playersList = new HashMap<>();
 
         Bundle bundle = getIntent().getExtras();
+        myFaction = (byte) bundle.getInt("Mode");
         playersName[1] = bundle.getString("name1");
         playersName[2] = bundle.getString("name2");
         playersList.put("BLUE", playersName[1]);
         playersList.put("ORANGE", playersName[2]);
 
 
+        initNetwork();
         initView();
         initControl();
         initCore();
@@ -81,6 +83,12 @@ public class GameActivity extends AppCompatActivity {
         gameCore.GO();
         tv.setText(gameCore.message);
     }
+
+    GameLink gameLink;
+    void initNetwork() {
+        gameLink = new GameLink(playersName[1]);
+    }
+
 
 
 // =============== View ======================
@@ -214,8 +222,9 @@ public class GameActivity extends AppCompatActivity {
                 ClipData clipData = new ClipData(view.getTag().toString(),mimeTypes,item);
 
                 // 移動的影子
-                //View.DragShadowBuilder myShadow = new View.DragShadowBuilder(view);
-                chiyuShadowBiulder myShadow = new chiyuShadowBiulder(view);
+                View.DragShadowBuilder myShadow = new View.DragShadowBuilder(view);
+                //chiyuShadowBiulder myShadow = new chiyuShadowBiulder(view);
+
 
                 // view.startDrag(clipData,myShadow,null,0);
                 // 第三個參數是為了要給 OnDragListener 處理 DROP 事件
@@ -247,8 +256,10 @@ public class GameActivity extends AppCompatActivity {
                     Log.d("chiyu","ACTION_DROP: " + area  + "\n");
                     // 抓出移動的那個View(棋子)
                     View piece = (View)event.getLocalState();
-                    // 抓出棋子原來的住址
+                    // 抓出棋子的新舊住址
                     ViewGroup oldParent = (ViewGroup)piece.getParent();
+                    ViewGroup newParent = (ViewGroup)v;
+
                     Log.d("chiyu","棋子 "+ piece.getTag() + ",from " + oldParent.getTag() + ",to " + v.getTag()); // Trail Run
 
                     //if(!openGrid[Integer.parseInt(v.getTag().toString())]) return false; // Trail Run 沒有核心時用的
@@ -258,10 +269,32 @@ public class GameActivity extends AppCompatActivity {
                                     v.getTag().toString())) return false;
                     tv.setText(gameCore.message);
 
+                    // TODO 上傳遊戲狀況
+                    int gameSTATE = 1;
+                    if(gameLink.connect)
+                        gameLink.uploadPlayingGame(
+                                new GameOnNet(gameSTATE,
+                                        gameCore.getNowPlayerID(),
+                                        gameCore.gameCheckerBoard.gameRecode));
+
+
                     // 移動棋子(畫面上)
+                    // 從舊的地方搬出來
                     oldParent.removeView(piece);
-                    ViewGroup newParent = (ViewGroup)v;
+
+                    // 若棋格下方有被蓋著的棋子 就顯示出來
+                    if(!oldParent.getTag().equals("0")){
+                        if(oldParent.getChildCount() != 0)
+                            oldParent.getChildAt(oldParent.getChildCount()-1).setVisibility(View.VISIBLE);
+                    }
+
+                    // 有東西被蓋住 就把下面的變成隱藏
+                    if(newParent.getChildCount() != 0)
+                        newParent.getChildAt(newParent.getChildCount()-1).setVisibility(View.INVISIBLE);
+
+                    // 把棋子放上去
                     newParent.addView(piece);
+
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
                     // Log.d("chiyu","ACTION_DRAG_ENDED: " + area  + "\n");
@@ -340,7 +373,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    Boolean PMove(String piece, String from, String to) {
+    boolean PMove(String piece, String from, String to) {
         int fromGrid, toGrid, size;
         String s,e;
 
