@@ -32,15 +32,29 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="Online2"
             android:text="線上 進房間"/>
     </LinearLayout>
-    <GridView
-        android:id="@+id/gridView"
+    <LinearLayout
+        android:id="@+id/drawer"
         android:layout_width="200px"
         android:layout_height="match_parent"
-        android:numColumns="1"
-        android:gravity="center"
-        android:background="#00ff00"
-        />
+        android:orientation="vertical"
+        android:background="@drawable/welcome"
+        >
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="inRoom"
+            android:tag="ertetretre"
+            android:text="線上 進房間"
+            />
+        <GridView
+            android:id="@+id/gridView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="1"
+            android:gravity="center"
+            android:background="#00ff00"
+            />
+    </LinearLayout>
 </RelativeLayout>
