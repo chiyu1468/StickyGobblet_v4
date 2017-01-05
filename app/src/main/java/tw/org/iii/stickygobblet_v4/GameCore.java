@@ -110,12 +110,12 @@ public class GameCore {
                 Log.v("chiyu","state_readyToStart");// trailrun
                 Precedence();  // 分配先後手
                 if(nowPlayerID == 0) break;
+                message = "Game Start!!!\n";
                 nowState = state_PlayerTurn;
                 // 分配完成後 就繼續執行下一個 state
             case state_PlayerTurn:
                 Log.v("chiyu","state_PlayerTurn");// trailrun
-                message = "Game Start!!!\n" +
-                        playerList.get(nowPlayerID).getName() + " take first move";
+                message = message + playerList.get(nowPlayerID).getName() + "'s turn.";
                 // 等玩家給指令
                 // state 的改變放在 playerMove 裡
                 break;
@@ -125,7 +125,7 @@ public class GameCore {
                 if(MrX.judge(gameCheckerBoard) == -1) nowState = state_End;
                 else {
                     nowPlayerID = (nowPlayerID % playerList.size()) + 1;
-                    message = playerList.get(nowPlayerID).getName() + "'s turn.";
+                    message = "";
                     nowState = state_PlayerTurn;
                     break;
                 }
@@ -253,7 +253,15 @@ public class GameCore {
     }
     // 取得玩家ID 上傳遊戲用的
     int getNowPlayerID(){return nowPlayerID;}
-
+    // 讓房客 設定先手的玩家用的
+    boolean setNowPlayerID(int playerID){
+        if(gameCheckerBoard.gameRecode.size() != 0){
+            // 不是起始棋局了
+            EList.add(ErrorCode.changeNowPlayerIDwhilePlaying);
+            return false;}
+        nowPlayerID = playerID;
+        return true;
+    }
 
     // 強制設定回合
     void TrailRun() {
@@ -275,6 +283,7 @@ public class GameCore {
     class checkerboard implements Serializable {
         // 目前遊戲回合數
         private int passedTurns;
+        int getPassedTurns(){return passedTurns;}
 
         // 棋盤面 = 方格 ＋ 棋子堆疊
         // 用 整數 對方格編號
@@ -765,6 +774,8 @@ public class GameCore {
         static final int pieceMoveIntoGridZero = 107;
         // 做了不是當下 state 應該做的事
         static final int stateError = 108;
+        // 在棋局進行到一半 想要變更目前的玩家回合
+        static final int changeNowPlayerIDwhilePlaying = 109;
     }
 
     }

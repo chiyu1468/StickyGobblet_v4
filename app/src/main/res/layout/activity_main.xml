@@ -10,9 +10,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="tw.org.iii.stickygobblet_v4.MainActivity"
     android:orientation="vertical">
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv"/>
     <EditText
-        android:id="@+id/name1"
+        android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Chiyu"/>

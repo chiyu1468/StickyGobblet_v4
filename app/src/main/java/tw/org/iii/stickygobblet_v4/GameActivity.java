@@ -39,7 +39,7 @@ public class GameActivity extends AppCompatActivity {
     GameCore gameCore;
     // 每種棋子分配的數量
     static final int PieceRation = 2;
-    // 陣營 單機版就是both
+    // 陣營 單機版就是both   host(房主)是blue  client(房客)是orange
     String[] Faction = {null,"blue","orange","both"};
     byte myFaction;
     // 紀錄玩家名稱
@@ -55,23 +55,25 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         tv = (TextView) findViewById(R.id.tv);
-
         playersList = new HashMap<>();
 
+        // 讀取遊戲模式
         Bundle bundle = getIntent().getExtras();
         myFaction = (byte) bundle.getInt("Mode");
+        String key = bundle.getString("key");
         playersName[1] = bundle.getString("name1");
         playersName[2] = bundle.getString("name2");
-        playersList.put("BLUE", playersName[1]);
-        playersList.put("ORANGE", playersName[2]);
 
-
-        initNetwork();
+        // 進行連線
+        initNetwork(this,myFaction,key);
         initView();
-        initControl();
-        initCore();
+
+        // 單機版就直接進入遊戲
+        if(myFaction == 3) playersArrived();
+
     }
 
+    // 啟動核心
     void initCore() {
         gameCore = new GameCore();
         // 起動引擎
@@ -84,11 +86,84 @@ public class GameActivity extends AppCompatActivity {
         tv.setText(gameCore.message);
     }
 
-    GameLink gameLink;
-    void initNetwork() {
-        gameLink = new GameLink(playersName[1]);
+// ============== 聯網對戰 ================
+
+    // 當玩家到齊 會呼叫這個方法
+    // 啟動遊戲核心與控制介面
+    void playersArrived() {
+        playersList.put("BLUE", playersName[1]);
+        playersList.put("ORANGE", playersName[2]);
+
+        // 這裡要設定 棋子才可以動喔
+        if(myFaction == 1) player = playersName[1];
+        else if(myFaction == 2) player = playersName[2];
+        // 啟動遊戲核心與控制介面
+        initControl();
+        initCore();
     }
 
+    GameLink gameLink;
+    void initNetwork(Context context, int Mode, String key) {
+        if(Mode != 2)
+            gameLink = new GameLink(context, playersName[1]);
+        else {
+            gameLink = new GameLink(context, playersName[2], key);
+        }
+    }
+
+    void netControlGame(String faction, Integer fromGrid, Integer toGrid, int size) {
+        // >>>>> Control <<<<<
+        String netPlayer = playersList.get(faction);
+        if(fromGrid == 0){
+            // 從棋庫拿子
+            gameCore.playerMove(netPlayer,fromGrid,toGrid,(byte) size);
+        } else {
+            // 移動棋子
+            gameCore.playerMove(netPlayer,fromGrid,toGrid);
+        }
+
+        // >>>>> View <<<<<
+        RelativeLayout BG = (RelativeLayout) findViewById(R.id.BoardGrids);
+        ViewGroup oldParent = (ViewGroup) BG.getChildAt(0)
+                , newParent = (ViewGroup) BG.getChildAt(0);
+        PieceStorage pieceStorage;
+        if(fromGrid == 0){
+            if(faction.equals("BLUE"))
+                pieceStorage = bluePS;
+            else if(faction.equals("ORANGE"))
+                pieceStorage = orangePS;
+            // 出錯就 return 掉
+            else {pieceStorage = new PieceStorage(null,null); return;}
+
+            switch (size){
+                case 1:
+                    oldParent = (ViewGroup) pieceStorage.smallPiece;
+                    break;
+                case 2:
+                    oldParent = (ViewGroup) pieceStorage.middlePiece;
+                    break;
+                case 3:
+                    oldParent = (ViewGroup) pieceStorage.bigPiece;
+                    break;
+            }
+
+            for(int i = 0; i < BG.getChildCount(); i++) {
+                if(BG.getChildAt(i).getTag().equals(toGrid.toString())) {
+                    newParent = (ViewGroup) BG.getChildAt(i);
+                    break;
+                }
+            }
+        } else {
+            for(int i = 0; i < BG.getChildCount(); i++) {
+                if(BG.getChildAt(i).getTag().equals(toGrid.toString()))
+                    newParent = (ViewGroup) BG.getChildAt(i);
+                else if(BG.getChildAt(i).getTag().equals(fromGrid.toString()))
+                    oldParent = (ViewGroup) BG.getChildAt(i);
+            }
+        }
+
+        pieceMoving(oldParent,newParent,oldParent.getChildAt(oldParent.getChildCount()-1));
+    }
 
 
 // =============== View ======================
@@ -208,6 +283,24 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    // 處理棋子移動
+    void pieceMoving(ViewGroup oldParent, ViewGroup newParent, View pieceView) {
+        // 從舊的地方搬出來
+        oldParent.removeView(pieceView);
+
+        // 若棋格下方有被蓋著的棋子 就顯示出來
+        if(!oldParent.getTag().equals("0")){
+            if(oldParent.getChildCount() != 0)
+                oldParent.getChildAt(oldParent.getChildCount()-1).setVisibility(View.VISIBLE);
+        }
+
+        // 有東西被蓋住 就把下面的變成隱藏
+        if(newParent.getChildCount() != 0)
+            newParent.getChildAt(newParent.getChildCount()-1).setVisibility(View.INVISIBLE);
+
+        // 把棋子放上去
+        newParent.addView(pieceView);
+    }
 
 // =============== Control ======================
 
@@ -262,6 +355,12 @@ public class GameActivity extends AppCompatActivity {
 
                     Log.d("chiyu","棋子 "+ piece.getTag() + ",from " + oldParent.getTag() + ",to " + v.getTag()); // Trail Run
 
+                    // 如果不是單機版 就要檢查目前的連線遊戲狀態
+                    // 若不是玩家回合 就不能操作
+                    if(myFaction != 3 &&
+                            gameLink.downloadGameOnNet.gameState != GameOnNet.GameState.waitPlayer)
+                        return false;
+
                     //if(!openGrid[Integer.parseInt(v.getTag().toString())]) return false; // Trail Run 沒有核心時用的
                     // 核心處理移動 不可以就回傳 false
                     if(!PMove(piece.getTag().toString(),
@@ -270,30 +369,30 @@ public class GameActivity extends AppCompatActivity {
                     tv.setText(gameCore.message);
 
                     // TODO 上傳遊戲狀況
-                    int gameSTATE = 1;
-                    if(gameLink.connect)
+                    if(gameLink.isConnect())
                         gameLink.uploadPlayingGame(
-                                new GameOnNet(gameSTATE,
+                                new GameOnNet(GameOnNet.GameState.gameSync,
                                         gameCore.getNowPlayerID(),
                                         gameCore.gameCheckerBoard.gameRecode));
 
 
                     // 移動棋子(畫面上)
-                    // 從舊的地方搬出來
-                    oldParent.removeView(piece);
-
-                    // 若棋格下方有被蓋著的棋子 就顯示出來
-                    if(!oldParent.getTag().equals("0")){
-                        if(oldParent.getChildCount() != 0)
-                            oldParent.getChildAt(oldParent.getChildCount()-1).setVisibility(View.VISIBLE);
-                    }
-
-                    // 有東西被蓋住 就把下面的變成隱藏
-                    if(newParent.getChildCount() != 0)
-                        newParent.getChildAt(newParent.getChildCount()-1).setVisibility(View.INVISIBLE);
-
-                    // 把棋子放上去
-                    newParent.addView(piece);
+                    pieceMoving(oldParent,newParent,piece);
+//                    // 從舊的地方搬出來
+//                    oldParent.removeView(piece);
+//
+//                    // 若棋格下方有被蓋著的棋子 就顯示出來
+//                    if(!oldParent.getTag().equals("0")){
+//                        if(oldParent.getChildCount() != 0)
+//                            oldParent.getChildAt(oldParent.getChildCount()-1).setVisibility(View.VISIBLE);
+//                    }
+//
+//                    // 有東西被蓋住 就把下面的變成隱藏
+//                    if(newParent.getChildCount() != 0)
+//                        newParent.getChildAt(newParent.getChildCount()-1).setVisibility(View.INVISIBLE);
+//
+//                    // 把棋子放上去
+//                    newParent.addView(piece);
 
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
