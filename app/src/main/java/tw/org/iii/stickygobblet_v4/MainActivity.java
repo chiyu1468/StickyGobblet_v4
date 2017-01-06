@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class MainActivity extends AppCompatActivity {
-    private View mainview;
+    private View lobbyview;
     private View drawer;
     private GridView gridView;
     private MyAdapter myAdapter;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mainview = findViewById(R.id.activity_main);
+        lobbyview = findViewById(R.id.lobby);
         drawer = findViewById(R.id.drawer);
         ViewTreeObserver observer = drawer.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -68,20 +68,27 @@ public class MainActivity extends AppCompatActivity {
         roomRef = database.getReference("StickyGobblet");
         roomRef.child("/Waiting/").addChildEventListener(new MyChildEventListener());
         gridView.setAdapter(myAdapter);
-
-        mainview.setOnClickListener(new MyOnClickListener());
-        tv.setOnClickListener(new MainViewOnClickListener());
-    }
-    private class MainViewOnClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            drawerAnimator();
-        }
+        MyOnClickListener clickListener = new MyOnClickListener();
+        lobbyview.setTag("lobbyClick");
+        tv.setTag("tvClick");
+        lobbyview.setOnClickListener(clickListener);
+        tv.setOnClickListener(clickListener);
     }
     private class MyOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            drawerAnimator();
+            String s = view.getTag().toString();
+            switch (s) {
+                case "lobbyClick":
+                    Log.v("chiyu","lobbyClick");
+                    drawerAnimator(true);
+                    break;
+                case "tvClick":
+                    Log.v("chiyu","tvClick");
+                    drawerAnimator(false);
+                    break;
+            }
+
         }
     }
     private class MyChildEventListener implements ChildEventListener {
@@ -175,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
             inRoom(view.getTag().toString());
         }
     }
-    public void drawerAnimator() {
+    public void drawerAnimatorxxx() {
         ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
         AnimatorSet set = new AnimatorSet();
         //Log.v("chiyu","" + drawer.getX());
@@ -183,6 +190,19 @@ public class MainActivity extends AppCompatActivity {
             animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
         else if (drawer.getX() == 0)
             animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
+        set.playTogether(animator);
+        set.setDuration(500);
+        set.start();
+    }
+    public void drawerAnimator(boolean isin) {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
+        AnimatorSet set = new AnimatorSet();
+        if ( (drawer.getX() == drawerWidth) && !isin )
+            animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
+        else if ( (drawer.getX() == 0) && isin)
+            animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
+        else
+            return;
         set.playTogether(animator);
         set.setDuration(500);
         set.start();
