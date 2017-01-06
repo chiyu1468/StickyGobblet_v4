@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -31,9 +32,10 @@ public class MainActivity extends AppCompatActivity {
     private View drawer;
     private GridView gridView;
     private MyAdapter myAdapter;
+    private float drawerWidth;
+    private boolean issetX = false;
     EditText name;
     TextView tv;
-
     FirebaseDatabase database;
     DatabaseReference roomRef;
     ArrayList<String> rooms;
@@ -44,7 +46,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mainview = findViewById(R.id.activity_main);
         drawer = findViewById(R.id.drawer);
-        drawer.setX(-200f);
+        ViewTreeObserver observer = drawer.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                drawerWidth = -drawer.getWidth();
+                Log.v("chiyu","getWidth() : " + drawerWidth);
+                if (!issetX) {
+                    drawer.setX(drawerWidth);
+                    issetX = true;
+                }
+            }
+        });
         gridView = (GridView)findViewById(R.id.gridView);
         name = (EditText) findViewById(R.id.name);
         tv = (TextView) findViewById(R.id.tv);
@@ -55,7 +68,15 @@ public class MainActivity extends AppCompatActivity {
         roomRef = database.getReference("StickyGobblet");
         roomRef.child("/Waiting/").addChildEventListener(new MyChildEventListener());
         gridView.setAdapter(myAdapter);
+
         mainview.setOnClickListener(new MyOnClickListener());
+        tv.setOnClickListener(new MainViewOnClickListener());
+    }
+    private class MainViewOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            drawerAnimator();
+        }
     }
     private class MyOnClickListener implements View.OnClickListener {
         @Override
@@ -141,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
             }
             ImageView img = (ImageView)view.findViewById(R.id.item_img);
             TextView title = (TextView)view.findViewById(R.id.item_title);
-            img.setImageResource(R.drawable.ballultra);
+            img.setImageResource(R.drawable.photo);
             title.setText(roomname.get(i));
             view.setTag(rooms.get(i));
             view.setOnClickListener(new gridViewClickListener());
@@ -155,13 +176,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void drawerAnimator() {
-        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", -200, -200);;
+        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
         AnimatorSet set = new AnimatorSet();
         //Log.v("chiyu","" + drawer.getX());
-        if (drawer.getX() == -200)
-            animator = ObjectAnimator.ofFloat(drawer, "x", -200, 0);
+        if (drawer.getX() == drawerWidth)
+            animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
         else if (drawer.getX() == 0)
-            animator = ObjectAnimator.ofFloat(drawer, "x", 0, -200);
+            animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
         set.playTogether(animator);
         set.setDuration(500);
         set.start();
