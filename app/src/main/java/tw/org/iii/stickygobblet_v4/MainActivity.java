@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -27,13 +28,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class MainActivity extends AppCompatActivity {
-    private View mainview;
+    private View lobbyview;
     private View drawer;
     private GridView gridView;
     private MyAdapter myAdapter;
+    private float drawerWidth;
+    private boolean issetX = false;
     EditText name;
     TextView tv;
-
     FirebaseDatabase database;
     DatabaseReference roomRef;
     ArrayList<String> rooms;
@@ -42,9 +44,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mainview = findViewById(R.id.activity_main);
+        lobbyview = findViewById(R.id.lobby);
         drawer = findViewById(R.id.drawer);
-        drawer.setX(-200f);
+        ViewTreeObserver observer = drawer.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                drawerWidth = -drawer.getWidth();
+                Log.v("chiyu","getWidth() : " + drawerWidth);
+                if (!issetX) {
+                    drawer.setX(drawerWidth);
+                    issetX = true;
+                }
+            }
+        });
         gridView = (GridView)findViewById(R.id.gridView);
         name = (EditText) findViewById(R.id.name);
         tv = (TextView) findViewById(R.id.tv);
@@ -55,12 +68,27 @@ public class MainActivity extends AppCompatActivity {
         roomRef = database.getReference("StickyGobblet");
         roomRef.child("/Waiting/").addChildEventListener(new MyChildEventListener());
         gridView.setAdapter(myAdapter);
-        mainview.setOnClickListener(new MyOnClickListener());
+        MyOnClickListener clickListener = new MyOnClickListener();
+        lobbyview.setTag("lobbyClick");
+        tv.setTag("tvClick");
+        lobbyview.setOnClickListener(clickListener);
+        tv.setOnClickListener(clickListener);
     }
     private class MyOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            drawerAnimator();
+            String s = view.getTag().toString();
+            switch (s) {
+                case "lobbyClick":
+                    Log.v("chiyu","lobbyClick");
+                    drawerAnimator(true);
+                    break;
+                case "tvClick":
+                    Log.v("chiyu","tvClick");
+                    drawerAnimator(false);
+                    break;
+            }
+
         }
     }
     private class MyChildEventListener implements ChildEventListener {
@@ -141,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             }
             ImageView img = (ImageView)view.findViewById(R.id.item_img);
             TextView title = (TextView)view.findViewById(R.id.item_title);
-            img.setImageResource(R.drawable.ballultra);
+            img.setImageResource(R.drawable.photo);
             title.setText(roomname.get(i));
             view.setTag(rooms.get(i));
             view.setOnClickListener(new gridViewClickListener());
@@ -154,14 +182,27 @@ public class MainActivity extends AppCompatActivity {
             inRoom(view.getTag().toString());
         }
     }
-    public void drawerAnimator() {
-        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", -200, -200);;
+    public void drawerAnimatorxxx() {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
         AnimatorSet set = new AnimatorSet();
         //Log.v("chiyu","" + drawer.getX());
-        if (drawer.getX() == -200)
-            animator = ObjectAnimator.ofFloat(drawer, "x", -200, 0);
+        if (drawer.getX() == drawerWidth)
+            animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
         else if (drawer.getX() == 0)
-            animator = ObjectAnimator.ofFloat(drawer, "x", 0, -200);
+            animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
+        set.playTogether(animator);
+        set.setDuration(500);
+        set.start();
+    }
+    public void drawerAnimator(boolean isin) {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
+        AnimatorSet set = new AnimatorSet();
+        if ( (drawer.getX() == drawerWidth) && !isin )
+            animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
+        else if ( (drawer.getX() == 0) && isin)
+            animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
+        else
+            return;
         set.playTogether(animator);
         set.setDuration(500);
         set.start();
