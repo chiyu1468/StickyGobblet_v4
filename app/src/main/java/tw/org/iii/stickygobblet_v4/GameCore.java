@@ -80,7 +80,7 @@ public class GameCore {
     final int state_PlayerTurn = 903;
     final int state_Referee = 904;
     final int state_End = 905;
-    private int nowState = 0;
+    private Integer nowState = 0;
 
     // 用於判斷棋步合法用的參數
     private byte nowFaction = 0;
@@ -110,12 +110,12 @@ public class GameCore {
                 Log.v("chiyu","state_readyToStart");// trailrun
                 Precedence();  // 分配先後手
                 if(nowPlayerID == 0) break;
-                message = "Game Start!!!\n";
+                message = "Game Start";
                 nowState = state_PlayerTurn;
                 // 分配完成後 就繼續執行下一個 state
             case state_PlayerTurn:
                 Log.v("chiyu","state_PlayerTurn");// trailrun
-                message = message + playerList.get(nowPlayerID).getName() + "'s turn.";
+                message = playerList.get(nowPlayerID).getName();
                 // 等玩家給指令
                 // state 的改變放在 playerMove 裡
                 break;
@@ -177,8 +177,8 @@ public class GameCore {
         StateMachine();
         ProcessErrorCode();
 
-        if(nowPlayerID > 0) return playerList.get(nowPlayerID).getName();
-        return "";
+        if(nowState == state_PlayerTurn) return playerList.get(nowPlayerID).getName();
+        return nowState.toString();
     }
     // 玩家加入
     boolean addPlayer(String name) {

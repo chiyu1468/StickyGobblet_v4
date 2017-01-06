@@ -82,8 +82,10 @@ public class GameActivity extends AppCompatActivity {
         gameCore.addPlayer(playersName[1]);
         gameCore.addPlayer(playersName[2]);
         // 遊戲開始 並取得目前是誰的回合
-        gameCore.GO();
-        tv.setText(gameCore.message);
+        String result = gameCore.GO();
+        // 單機版的 就自己顯示
+        if(myFaction == 3)
+            tv.setText("Game Start!!!\n" + result + "'s turn!");
     }
 
 // ============== 聯網對戰 ================
@@ -121,6 +123,8 @@ public class GameActivity extends AppCompatActivity {
             // 移動棋子
             gameCore.playerMove(netPlayer,fromGrid,toGrid);
         }
+
+
 
         // >>>>> View <<<<<
         RelativeLayout BG = (RelativeLayout) findViewById(R.id.BoardGrids);
@@ -163,6 +167,7 @@ public class GameActivity extends AppCompatActivity {
         }
 
         pieceMoving(oldParent,newParent,oldParent.getChildAt(oldParent.getChildCount()-1));
+        tv.setText(gameLink.LinkMessage);
     }
 
 
@@ -366,12 +371,25 @@ public class GameActivity extends AppCompatActivity {
                     if(!PMove(piece.getTag().toString(),
                                     oldParent.getTag().toString(),
                                     v.getTag().toString())) return false;
-                    tv.setText(gameCore.message);
+
+                    int GameState = GameOnNet.GameState.gameSync;
+                    // 判斷是否分出勝負了
+                    String result = gameCore.GO();
+                    if(result.equals("905")) {  // 905 --> GameCore.state_End
+                        GameState = GameOnNet.GameState.gameOver;
+                        tv.setText(gameCore.message);
+                    } else {
+                        tv.setText(result + "'s turn!");
+                    }
+                    //tv.setText(gameCore.GO() + "'s turn!");
+
+
+
 
                     // TODO 上傳遊戲狀況
                     if(gameLink.isConnect())
                         gameLink.uploadPlayingGame(
-                                new GameOnNet(GameOnNet.GameState.gameSync,
+                                new GameOnNet(GameState,
                                         gameCore.getNowPlayerID(),
                                         gameCore.gameCheckerBoard.gameRecode));
 

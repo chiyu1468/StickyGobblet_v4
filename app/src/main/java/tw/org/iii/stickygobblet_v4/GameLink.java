@@ -27,6 +27,8 @@ public class GameLink{
     FirebaseDatabase database;
     DatabaseReference gameRef;
 
+    String LinkMessage = "";
+
     private String key;
     private GameActivity parentContext;
     // 一個區域 儲存網路上的遊戲狀態
@@ -163,15 +165,20 @@ public class GameLink{
                         } else if(dataSnapshot.hasChild("gameRecode")){
                             // 棋局中 則解碼遊戲紀錄
                             decodeGameRecode(dataSnapshot);
-
                         }
                         break;
                     case GameOnNet.GameState.waitPlayer:
-                        parentContext.gameCore.GO();
-                        parentContext.tv.setText(parentContext.gameCore.message);
+                        String tName = parentContext.gameCore.GO();
+                        if(parentContext.gameCore.gameCheckerBoard.getPassedTurns() == 0)
+                            tName = "Game Start!!!\n" + tName;
+                        //parentContext.tv.setText(tName + "'s turn");
+                        LinkMessage = tName + "'s turn";
                         break;
                     case GameOnNet.GameState.gameOver:
-
+                        if(parentContext.myFaction != 2) {
+                            gameRef.child("/Ending/" + key).setValue(gameRef.child("/Playing/" + key +"/gameRecode/"));
+                            gameRef.child("/Playing/" + key +"/gameRecode/").setValue(null);
+                        }
                         break;
                 }
 
@@ -233,6 +240,9 @@ public class GameLink{
         gameRef.child("/Playing/" + key).setValue(gameOnNet);
     }
 
+    public void setGameOver() {
+        gameRef.child("/Playing/" + key + "/gameState/").setValue(GameOnNet.GameState.gameOver);
+    }
 }
 
 // 遊戲狀態類別 上傳遊戲狀態用
