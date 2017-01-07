@@ -34,8 +34,10 @@ public class MainActivity extends AppCompatActivity {
     private MyAdapter myAdapter;
     private float drawerWidth;
     private boolean issetX = false;
+    private View btnsingle;
+    private View btnonlinenewroom;
     EditText name;
-    TextView tv;
+    private TextView tv;
     FirebaseDatabase database;
     DatabaseReference roomRef;
     ArrayList<String> rooms;
@@ -46,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         lobbyview = findViewById(R.id.lobby);
         drawer = findViewById(R.id.drawer);
+        gridView = (GridView)findViewById(R.id.gridView);
+        name = (EditText) findViewById(R.id.name);
+        tv = (TextView) findViewById(R.id.tv);
+        btnsingle = (View) findViewById(R.id.single);
+        btnonlinenewroom = (View) findViewById(R.id.newroom);
         ViewTreeObserver observer = drawer.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -58,9 +65,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        gridView = (GridView)findViewById(R.id.gridView);
-        name = (EditText) findViewById(R.id.name);
-        tv = (TextView) findViewById(R.id.tv);
         myAdapter = new MyAdapter(this);
         rooms = new ArrayList<>();
         roomname = new ArrayList<>();
@@ -71,8 +75,12 @@ public class MainActivity extends AppCompatActivity {
         MyOnClickListener clickListener = new MyOnClickListener();
         lobbyview.setTag("lobbyClick");
         tv.setTag("tvClick");
+        btnsingle.setTag("single");
+        btnonlinenewroom.setTag("newroom");
         lobbyview.setOnClickListener(clickListener);
         tv.setOnClickListener(clickListener);
+        btnsingle.setOnClickListener(clickListener);
+        btnonlinenewroom.setOnClickListener(clickListener);
     }
     private class MyOnClickListener implements View.OnClickListener {
         @Override
@@ -87,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
                     Log.v("chiyu","tvClick");
                     drawerAnimator(false);
                     break;
+                case "single":
+                    Start(3);
+                    break;
+                case "newroom":
+                    Start(1);
             }
 
         }
@@ -96,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             rooms.add(dataSnapshot.getKey());
             roomname.add(dataSnapshot.child("host").getValue(String.class));
-            tv.setText(rooms.size()+" rooms waiting here");
+            tv.setText("Waiting ( " + rooms.size() + " ) ");
             myAdapter.notifyDataSetChanged();
         }
         @Override
@@ -105,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             rooms.remove(dataSnapshot.getKey());
             roomname.remove(dataSnapshot.child("host").getValue(String.class));
-            tv.setText(rooms.size()+" rooms waiting here");
+            tv.setText("Waiting ( " + rooms.size() + " ) ");
             myAdapter.notifyDataSetChanged();
         }
         @Override
@@ -113,25 +126,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {}
     }
-    public void Start(View v) {
+    public void Start(int mode) {
         Intent ii = new Intent();
         ii.setClass(this, GameActivity.class);
         Bundle bundle = new Bundle();
         bundle.putString("name1", name.getText().toString());
         bundle.putString("name2", "Orange Computer");
-        bundle.putInt("Mode", 3);
+        bundle.putInt("Mode", mode);
         ii.putExtras(bundle);
         startActivity(ii);
     }
-    public void Online1(View v) {
-        Intent ii = new Intent();
-        ii.setClass(this, GameActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("name1", name.getText().toString());
-        bundle.putInt("Mode", 1);
-        ii.putExtras(bundle);
-        startActivity(ii);
-    }
+//    public void Online1(View v) {
+//        Intent ii = new Intent();
+//        ii.setClass(this, GameActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putString("name1", name.getText().toString());
+//        bundle.putInt("Mode", 1);
+//        ii.putExtras(bundle);
+//        startActivity(ii);
+//    }
     public void inRoom(String roomNumber) {
         Intent ii = new Intent();
         ii.setClass(this, GameActivity.class);
@@ -181,18 +194,6 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             inRoom(view.getTag().toString());
         }
-    }
-    public void drawerAnimatorxxx() {
-        ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
-        AnimatorSet set = new AnimatorSet();
-        //Log.v("chiyu","" + drawer.getX());
-        if (drawer.getX() == drawerWidth)
-            animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, 0);
-        else if (drawer.getX() == 0)
-            animator = ObjectAnimator.ofFloat(drawer, "x", 0, drawerWidth);
-        set.playTogether(animator);
-        set.setDuration(500);
-        set.start();
     }
     public void drawerAnimator(boolean isin) {
         ObjectAnimator animator = ObjectAnimator.ofFloat(drawer, "x", drawerWidth, drawerWidth);
