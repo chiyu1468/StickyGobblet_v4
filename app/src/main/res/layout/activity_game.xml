@@ -18,14 +18,15 @@
         <RelativeLayout
             android:id="@+id/BoardGrids"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="370dp"
+            android:background="@drawable/game_layout_background">
 
             <RelativeLayout
                 android:tag="2"
                 android:id="@+id/Grid2"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
                 android:layout_marginTop="@dimen/MarginGridEgde"
                 android:layout_marginLeft="@dimen/MarginBetweenGrid"
                 android:layout_marginRight="@dimen/MarginBetweenGrid"
@@ -36,7 +37,7 @@
                 android:id="@+id/Grid1"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toLeftOf="@id/Grid2"
                 android:layout_alignTop="@id/Grid2"/>
@@ -46,7 +47,7 @@
                 android:id="@+id/Grid3"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toRightOf="@id/Grid2"
                 android:layout_alignTop="@id/Grid2"/>
@@ -56,7 +57,7 @@
                 android:id="@+id/Grid5"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_below="@id/Grid2"
                 android:layout_marginTop="@dimen/MarginBetweenGrid"
@@ -69,7 +70,7 @@
                 android:id="@+id/Grid4"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toLeftOf="@id/Grid5"
                 android:layout_alignTop="@id/Grid5"/>
@@ -79,7 +80,7 @@
                 android:id="@+id/Grid6"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toRightOf="@id/Grid5"
                 android:layout_alignTop="@id/Grid5"/>
@@ -89,7 +90,7 @@
                 android:id="@+id/Grid8"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_below="@id/Grid5"
                 android:layout_marginTop="@dimen/MarginBetweenGrid"
@@ -103,7 +104,7 @@
                 android:id="@+id/Grid9"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toRightOf="@id/Grid8"
                 android:layout_alignTop="@id/Grid8"/>
@@ -113,10 +114,12 @@
                 android:id="@+id/Grid7"
                 android:layout_width="@dimen/GridLength"
                 android:layout_height="@dimen/GridLength"
-                android:background="#15bcc2"
+                android:background="@color/gridColor"
 
                 android:layout_toLeftOf="@id/Grid8"
                 android:layout_alignTop="@id/Grid8"/>
+
+
 
         </RelativeLayout>
 
@@ -131,7 +134,8 @@
             android:id="@+id/tv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hello World"
+            android:text="~ Sticky Gobblet ~"
+            android:textAlignment="center"
             android:textSize="24sp"/>
 
 

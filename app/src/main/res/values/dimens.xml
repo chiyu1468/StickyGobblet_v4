@@ -5,7 +5,7 @@
 
 
     <dimen name="GridLength">80dp</dimen>
-    <dimen name="MarginBetweenGrid">15dp</dimen>
+    <dimen name="MarginBetweenGrid">7dp</dimen>
     <dimen name="MarginGridEgde">15dp</dimen>
 
 

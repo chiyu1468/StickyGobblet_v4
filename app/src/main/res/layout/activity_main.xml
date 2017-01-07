@@ -77,6 +77,7 @@
             android:text="OnLine Room"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:layout_marginLeft="10dp"
             />
         <GridView
             android:id="@+id/gridView"
