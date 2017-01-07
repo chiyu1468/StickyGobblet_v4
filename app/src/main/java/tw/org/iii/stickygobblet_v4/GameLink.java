@@ -27,7 +27,7 @@ public class GameLink{
     FirebaseDatabase database;
     DatabaseReference gameRef;
 
-    String LinkMessage = "";
+    boolean isEnd;
 
     private String key;
     private GameActivity parentContext;
@@ -106,7 +106,7 @@ public class GameLink{
         parentContext.playersArrived();
         gameRef.child("/Waiting/" + key).setValue(null);
         // TODO BUG to fix
-        //gameRef.child("/Playing/" + key + "/player1/" + parentContext.playersName[1]).setValue("OK");
+//        gameRef.child("/Playing/" + key + "/player1/").setValue("OK");
         //gameRef.child("/Playing/" + key + "/player2/" + parentContext.playersName[2]).setValue("OK");
         uploadPlayingGame(new GameOnNet(GameOnNet.GameState.gameSync,
                 parentContext.gameCore.getNowPlayerID(),
@@ -161,24 +161,30 @@ public class GameLink{
                             // 棋局一開始 房客需要同步先後手順序
                             parentContext.gameCore.setNowPlayerID(downloadGameOnNet.nowPlayer);
                             // 同步完成 則變更遊戲狀態
-                            gameRef.child("/Playing/" + key + "/gameState/").setValue(GameOnNet.GameState.waitPlayer);
+                            // gameRef.child("/Playing/" + key + "/gameState/").setValue(GameOnNet.GameState.waitPlayer);
                         } else if(dataSnapshot.hasChild("gameRecode")){
-                            // 棋局中 則解碼遊戲紀錄
+                            // 棋局中 則解碼遊戲紀錄 並同步棋局
                             decodeGameRecode(dataSnapshot);
                         }
+                        // 同步完成 就改變 gameState 這樣自己才可以下子
+                        gameRef.child("/Playing/" + key + "/gameState/").setValue(GameOnNet.GameState.waitPlayer);
                         break;
                     case GameOnNet.GameState.waitPlayer:
                         String tName = parentContext.gameCore.GO();
                         if(parentContext.gameCore.gameCheckerBoard.getPassedTurns() == 0)
                             tName = "Game Start!!!\n" + tName;
-                        //parentContext.tv.setText(tName + "'s turn");
-                        LinkMessage = tName + "'s turn";
+                        parentContext.tv.setText(tName + "'s turn.");
+                        //LinkMessage = tName + "'s turn";
                         break;
                     case GameOnNet.GameState.gameOver:
-                        if(parentContext.myFaction != 2) {
-                            gameRef.child("/Ending/" + key).setValue(gameRef.child("/Playing/" + key +"/gameRecode/"));
-                            gameRef.child("/Playing/" + key +"/gameRecode/").setValue(null);
-                        }
+                        isEnd = true;
+                        if(dataSnapshot.hasChild("gameRecode"))
+                            decodeGameRecode(dataSnapshot);
+
+                        if(parentContext.myFaction != 2)
+                            gameRef.child("/Ending/" + key + "/gameRecode/").setValue(
+                                    dataSnapshot.child("/gameRecode/").getValue());
+
                         break;
                 }
 
@@ -229,8 +235,7 @@ public class GameLink{
 
             // 同步棋步
             parentContext.netControlGame(faction,(int)target,(int)destination,(int)size);
-            // 同步完成 就改變 gameState 這樣自己才可以下子
-            gameRef.child("/Playing/" + key + "/gameState/").setValue(GameOnNet.GameState.waitPlayer);
+
         }
 
     }

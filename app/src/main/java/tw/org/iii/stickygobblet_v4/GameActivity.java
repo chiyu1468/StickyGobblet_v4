@@ -167,7 +167,6 @@ public class GameActivity extends AppCompatActivity {
         }
 
         pieceMoving(oldParent,newParent,oldParent.getChildAt(oldParent.getChildCount()-1));
-        tv.setText(gameLink.LinkMessage);
     }
 
 
